@@ -6,6 +6,13 @@ export class Ant extends Phaser.GameObjects.Container {
   speed: number;
   sprite: Phaser.GameObjects.Sprite;
   collider: Phaser.Geom.Circle;
+  velocity: Phaser.Math.Vector2 = new Phaser.Math.Vector2(0, 0);
+  worldBounds: Phaser.Geom.Rectangle = new Phaser.Geom.Rectangle(
+    0,
+    0,
+    1024,
+    768
+  );
 
   static createAnt(scene: Phaser.Scene, x: number, y: number, speed: number) {
     // random radian angle
@@ -32,21 +39,21 @@ export class Ant extends Phaser.GameObjects.Container {
       "dot_red"
     );
     middleDetector.scale = 3 / 2;
+
     const leftDetector = new Phaser.GameObjects.Sprite(
       this.scene,
-      10,
-      20,
+      15,
+      12,
       "dot_red"
     );
     leftDetector.scale = 3 / 2;
 
     const rightDetector = new Phaser.GameObjects.Sprite(
       this.scene,
-      10,
-      -20,
+      15,
+      -12,
       "dot_red"
     );
-
     rightDetector.scale = 3 / 2;
 
     this.add(sprite);
@@ -76,18 +83,55 @@ export class Ant extends Phaser.GameObjects.Container {
   }
 
   wander(bias: { x: number; y: number } | null = null) {
-    // this.setX(this.x + this.speed);
+    this.rotation += Math.random() * 0.1 - 0.05;
 
-    // Slight random variations in rotation:
-    if (bias === null) {
-      this.setRotation(this.rotation + (Math.random() * 0.1 - 0.05));
-    } else {
-      const angleToBias = this.getAngleTo(bias.x, bias.y);
-      this.setRotation(angleToBias);
+    if (this.x < this.worldBounds.x) {
+      this.x = this.worldBounds.x;
+      this.rotation = Math.PI - this.rotation;
     }
 
-    this.setX(this.x + Math.cos(this.rotation) * this.speed);
-    this.setY(this.y + Math.sin(this.rotation) * this.speed);
+    if (this.x > this.worldBounds.width) {
+      this.x = this.worldBounds.width;
+      this.rotation = Math.PI - this.rotation;
+    }
+
+    if (this.y < this.worldBounds.y) {
+      this.y = this.worldBounds.y;
+      this.rotation = -this.rotation;
+    }
+
+    if (this.y > this.worldBounds.height) {
+      this.y = this.worldBounds.height;
+      this.rotation = -this.rotation;
+    }
+
+    if (bias === null) {
+      this.velocity = new Phaser.Math.Vector2(
+        Math.cos(this.rotation) * this.speed,
+        Math.sin(this.rotation) * this.speed
+      );
+    } else {
+      const angleToBias = this.getAngleTo(bias.x, bias.y);
+      this.rotation = angleToBias;
+      this.velocity = new Phaser.Math.Vector2(
+        Math.cos(angleToBias) * this.speed,
+        Math.sin(angleToBias) * this.speed
+      );
+    }
+
+    this.x += this.velocity.x;
+    this.y += this.velocity.y;
+
+    // Slight random variations in rotation:
+    // if (bias === null) {
+    //   this.setRotation(this.rotation + (Math.random() * 0.1 - 0.05));
+    // } else {
+    //   const angleToBias = this.getAngleTo(bias.x, bias.y);
+    //   this.setRotation(angleToBias);
+    // }
+
+    // this.setX(this.x + Math.cos(this.rotation) * this.speed);
+    // this.setY(this.y + Math.sin(this.rotation) * this.speed);
     // if (bias === null) {
     //   this.angle += Math.random() * 0.1 - 0.05;
     // } else {

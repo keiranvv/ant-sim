@@ -13,6 +13,9 @@ var config = {
     update: update,
   },
   backgroundColor: "#ffffff",
+  physics: {
+    default: "arcade",
+  },
 };
 
 var game = new Phaser.Game(config);
@@ -56,10 +59,12 @@ function preload(this: Phaser.Scene) {
 }
 
 async function create(this: Phaser.Scene) {
+  this.physics.world.setBounds(0, 0, 1024, 768);
+
   this.add.sprite(home.x, home.y, "home");
   this.add.sprite(food.x, food.y, "food");
 
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 20; i++) {
     // spawn from a random spot just outside home
     const spawn = {
       x: home.x + Math.cos(Math.random() * Math.PI * 2) * home.radius,
@@ -69,6 +74,7 @@ async function create(this: Phaser.Scene) {
   }
 
   huntingAnts.forEach((ant) => {
+    this.physics.world.enable(ant);
     this.add.existing(ant);
   });
 }
@@ -111,29 +117,29 @@ function update(this: Phaser.Scene, delta: number) {
 
   homeTrails.forEach((trail) => {
     const age = +new Date() - trail.created;
-    if (age > 30000) {
+    if (age > 60000) {
       homeTrails.shift();
       trail.sprite.destroy();
     }
 
-    const alpha = 1 - age / 30000;
+    const alpha = 1 - age / 60000;
 
     trail.sprite.setAlpha(alpha);
   });
 
   foodTrails.forEach((trail) => {
     const age = +new Date() - trail.created;
-    if (age > 30000) {
+    if (age > 60000) {
       foodTrails.shift();
       trail.sprite.destroy();
     }
 
-    const alpha = 1 - age / 30000;
+    const alpha = 1 - age / 60000;
 
     trail.sprite.setAlpha(alpha);
   });
 
-  if (delta - lastUpdate > 100) {
+  if (delta - lastUpdate > 200) {
     huntingAnts.forEach((ant) => {
       homeTrails.push({
         x: ant.x,
